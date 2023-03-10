@@ -23,4 +23,8 @@
 7. Run `python manage.py makemigrations` and then `python manage.py migrate` to create the necessary tables.
 8. Run `python manage.py create_users --count no_of_users_to_generate` to create dummy users. e.g `python manage.py create_users --count 5`
 9. Start the server `python manage.py runserver`
-10. You can visit the Chat Homepage on `http://127.0.0.1:3000/chats`.
+10. You can visit the Chat Homepage on `http://127.0.0.1:8000/chats`.
+
+**NOTE:**
+- Before you can enter a chatroom, you must be authenticated.
+- You can authenticate a user using this URL `http://127.0.0.1:8000/account/login/` and then provide username and password for the user.

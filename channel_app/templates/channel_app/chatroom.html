@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load chat_tags %}
+
+{% block content %}
+    <div class="container app">
+        <div class="row app-one">
+            <div class="col-sm-4 side">
+                <div class="side-one">
+                    <div class="row heading">
+                        <div class="col-sm-3 col-xs-3 heading-avatar">
+                            <div class="heading-avatar-icon">
+                                <img src="https://bootdey.com/img/Content/avatar/avatar1.png">
+                                <button class="btn btn-success">Back</button>
+
+                            </div>
+
+                        </div>
+                        <div class="col-sm-1 col-xs-1  heading-dot  pull-right">
+                            <i aria-hidden="true" class="fa fa-ellipsis-v fa-2x  pull-right"></i>
+                        </div>
+
+                        <div class="col-sm-2 col-xs-2 heading-compose-back  pull-right">
+                            <i onclick="goback();" aria-hidden="true" class="fa fa-arrow-left fa-2x  pull-right"></i>
+                        </div>
+                    </div>
+                    <div class="row searchBox">
+                        <div class="col-sm-12 searchBox-inner">
+                            <div class="form-group has-feedback">
+                                <input class="form-control" id="searchText" name="searchText" placeholder="Search"
+                                       type="text">
+                                <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row sideBar">
+                            <div class="row sideBar-body">
+                                <div class="col-sm-3 col-xs-3 sideBar-avatar">
+                                    <div class="avatar-icon">
+                                        {% get_room_image room_name as room_image %}
+                                        <img src="{{ room_image }}">
+                                    </div>
+                                </div>
+                                <div class="col-sm-9 col-xs-9 sideBar-main">
+                                    <div class="row">
+                                        <div class="col-sm-8 col-xs-8 sideBar-name">
+                                  <span class="name-meta"> {% get_room_name request room_name %}
+                                  </span>
+                                        </div>
+                                        <div class="col-sm-4 col-xs-4 pull-right sideBar-time">
+                                   <span class="time-meta pull-right">{% chatroom_last_message chatroom.id %}
+                                   </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    </div>
+
+                </div>
+                <div class="side-two">
+                    <div class="row newMessage-heading">
+                        <div class="row newMessage-main">
+                            <div class="col-sm-2 col-xs-2 newMessage-back">
+                                <i aria-hidden="true" class="fa fa-arrow-left"></i>
+                            </div>
+                            <div class="col-sm-10 col-xs-10 newMessage-title">
+                                New Chat
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row composeBox">
+                        <div class="col-sm-12 composeBox-inner">
+                            <div class="form-group has-feedback">
+                                <input class="form-control" id="composeText" name="searchText"
+                                       placeholder="Search People"
+                                       type="text">
+                                <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row compose-sideBar">
+                        {% for user in other_users %}
+                            <div class="row sideBar-body">
+                                <div class="col-sm-3 col-xs-3 sideBar-avatar">
+                                    <div class="avatar-icon">
+                                        <img src="https://bootdey.com/img/Content/avatar/avatar1.png">
+                                    </div>
+                                </div>
+                                <div class="col-sm-9 col-xs-9 sideBar-main">
+                                    <div class="row">
+                                        <div class="col-sm-8 col-xs-8 sideBar-name">
+                                 <span class="name-meta">{{ user.username }}
+                                 </span>
+                                        </div>
+                                        <div class="col-sm-4 col-xs-4 pull-right sideBar-time">
+                                  <span class="time-meta pull-right">18:18
+                                  </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-8 conversation">
+                <div class="row heading">
+                    <div class="col-sm-2 col-md-1 col-xs-3 heading-avatar">
+                        <div class="heading-avatar-icon">
+                            <img src="{% get_room_image room_name %}">
+                        </div>
+                    </div>
+                    <div class="col-sm-8 col-xs-7 heading-name">
+                        <a class="heading-name-meta">{% get_room_name request room_name %}
+                        </a>
+                        <span class="heading-online">Online</span>
+                    </div>
+                    <div class="col-sm-1 col-xs-1  heading-dot pull-right">
+                        <i aria-hidden="true" class="fa fa-ellipsis-v fa-2x  pull-right"></i>
+                    </div>
+                </div>
+                <div class="row message" id="conversation">
+                    <div class="row message-previous">
+                        <div class="col-sm-12 previous">
+                            <a id="ankitjain28" name="20" onclick="previous(this)">
+                                Show Previous Message!
+                            </a>
+                        </div>
+                    </div>
+                    {% for message in messages %}
+                    <div class="row message-body">
+                        <div class="col-sm-12 message-main-{% if message.sender == request.user %}sender{% else %}receiver{% endif %}">
+                            <div class="{% if message.sender == request.user %}sender{% else %}receiver{% endif %}">
+                                <div class="message-text">
+                                    {{ message.content }}
+                                </div>
+                                <span class="message-time pull-right">{{ message.created|time }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="row reply">
+                    <div class="col-sm-1 col-xs-1 reply-emojis">
+                        <i class="fa fa-smile-o fa-2x"></i>
+                    </div>
+                    <div class="col-sm-9 col-xs-9 reply-main">
+                        <textarea class="form-control" id="input" rows="1"></textarea>
+                    </div>
+                    <div class="col-sm-1 col-xs-1 reply-recording">
+                        <i aria-hidden="true" class="fa fa-microphone fa-2x"></i>
+                    </div>
+                    <div class="col-sm-1 col-xs-1 reply-send">
+                        <i aria-hidden="true" class="fa fa-send fa-2x" id="send-message"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+<a href="{% url 'chat_index' %}"> << GO Back</a>
+<br>
+<div id="log">
+
+</div>
+<input type="text" id="input"><br>
+
+<br>
+<hr>
+<input type="submit" value="Send" id="submit">
+{% block script %}
+    <script type="text/javascript">
+    function goback() {
+        window.location.href = '{% url 'chat_index' %}'
+    }
+    $(document).ready(function () {
+            $('#input').focus();
+            $('#input').on('keyup', function (e) {
+                if (e.which === 13) {
+                    $('#send-message').click();
+                }
+            })
+            $('#conversation').scrollTop($('#conversation')[0].scrollHeight); // will scroll to the bottom
+        });
+
+        let url;
+        if (window.location.protocol === 'http:') {
+            url = 'ws://' + window.location.host + '/ws/' + '{{room_name}}'
+        } else {
+            url = 'wss://' + window.location.host + '/ws/' + '{{room_name}}'
+        }
+        const chatSocket = new WebSocket(url);
+        chatSocket.onopen = function (e) {
+            console.log('connected')
+        }
+
+        chatSocket.onmessage = function (e) {
+            let data = JSON.parse(e.data);
+            console.log(data);
+            switch (data.type) {
+                case "welcome_message":
+                    console.log('message');
+                    break;
+                case "chat_message":
+                    let message = data['message']
+                    let sender = data['user']
+                    let time = data['time']
+                    handleChatMessage(message, sender, time);
+                    break;
+                case "join_group":
+                    console.log('joined...')
+                    let alert = data['message']
+                    sendAlert(alert);
+                    break;
+                default:
+                    console.log('unknown type')
+                    break
+            }
+        }
+
+        function handleChatMessage(message, sender, time) {
+            if (sender === '{{request.user.username}}') {
+                $('#conversation').append(`
+                <div class="row message-body">
+                        <div class="col-sm-12 message-main-sender">
+                            <div class="sender">
+                                <div class="message-text">
+                                    ${message}
+                                </div>
+                                <span class="message-time pull-right">${time}</span>
+                            </div>
+                        </div>
+                    </div>`)
+            } else {
+                $('#conversation').append(`
+                <div class="row message-body">
+                        <div class="col-sm-12 message-main-receiver">
+                            <div class="receiver">
+                                <div class="message-text">
+                                    ${message}
+                                </div>
+                                <span class="message-time pull-right">${time}</span>
+                            </div>
+                        </div>
+                    </div>
+                `)
+            }
+            $('#conversation').scrollTop($('#conversation')[0].scrollHeight);
+        }
+
+
+        $('#send-message').click(function () {
+            chatSocket.send(JSON.stringify({
+                type: 'chat_message',
+                message: $('#input').val()
+            }))
+            $('#input').val('')
+        })
+
+        function sendAlert(alert) {
+            $('#conversation').append(`<p class="text-center" style="font-size:10px;">${alert}</p>`)
+            $('#conversation').scrollTop($('#conversation')[0].scrollHeight); // will scroll to the bottom
+
+        }
+
+    </script>
+{% endblock %}

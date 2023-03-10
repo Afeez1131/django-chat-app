@@ -1,0 +1,10 @@
+<div class="row message-body">
+    <div class="col-sm-12 message-main-{% if message.sender.username == user  %}sender{% else %}receiver{% endif %}">
+        <div class="{% if message.sender.username == user %}sender{% else %}receiver{% endif %}">
+            <div class="message-text">
+                {{ message.content }}
+            </div>
+            <span class="message-time pull-right">{{ message.created|time }}</span>
+        </div>
+    </div>
+</div>

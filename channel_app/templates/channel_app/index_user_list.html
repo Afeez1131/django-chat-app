@@ -1,0 +1,16 @@
+{% load chat_tags %}
+
+<li onclick="openCreateChatroom('{{ room.name }}');">
+    <a href="#" class="clearfix">
+        {% get_room_image room.name as room_image %}
+        <img src="{{ room_image }}" alt="" class="img-circle">
+        <div class="friend-name">
+            <h5>{% get_room_name request room.name %}</h5>
+        </div>
+        {% chatroom_last_message_time room.id as last_message_time %}
+        {% chatroom_last_message room.id as last_message %}
+        <div class="last-message text-muted">{{ last_message|truncatewords:20 }}</div>
+        <small class="time text-muted">{{ last_message_time }}</small>
+        <small class="chat-alert text-muted"><i class="fa fa-check"></i></small>
+    </a>
+</li>

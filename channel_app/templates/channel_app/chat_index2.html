@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load chat_tags %}
+{% block content %}
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+    <div class="container">
+    <h2 class="text-center text-white" style="color:white">user: {{ request.user }}</h2>
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1 bg-white" style="margin-top:25px;">
+                <div class="container-fluid" style="padding:10px;">
+                    <div class="col-md-4 col-sm-4 col-xs-4">
+                        <a href="#" data-toggle="modal" data-target="#group-chat"><i
+                                class="btn btn-primary text-white fa fa-group"></i></a>
+                        <a href="#" data-toggle="modal" data-target="#conversation"><i
+                                class="btn btn-md btn-success text-white fa fa-comments"></i></a>
+                    </div>
+                    <div class="col-md-8 col-sm-6 col-xs-8 pull-right">
+                        <form action="" method="POST">
+                                <input type="text" class="form-control" placeholder="Search" id="search"/>
+
+                        </form>
+                    </div>
+                </div>
+                <!-- member list -->
+                <ul class="friend-list scroll">
+                    {% for room in user_rooms %}
+                        <li onclick="openCreateChatroom('{{ room.name }}');">
+                            <a href="#" class="clearfix">
+                                {% get_room_image room.name as room_image %}
+                                <img src="{{ room_image }}" alt="" class="img-circle">
+                                <div class="friend-name">
+                                    <h5>{% get_room_name request room.name %}</h5>
+                                </div>
+                                {% chatroom_last_message_time room.id as last_message_time %}
+                                {% chatroom_last_message room.id as last_message %}
+                                <div class="last-message text-muted">{{ last_message|truncatewords:20 }}</div>
+                                <small class="time text-muted">{{ last_message_time }}</small>
+                                {% room_message_read request.user room.id as unread_count %}
+                                {% if unread_count > 0 %}
+                                <small class="chat-alert label label-danger">{{ unread_count }}</small>
+                                {% else %}
+                                <small class="chat-alert text-muted"><i class="fa fa-check"></i></small>
+                                {% endif %}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    {% comment %} New group chat modal {% endcomment %}
+    <div class="modal fade" id="group-chat" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Create New Group Chat</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <p><label for="room_name">Room Name:</label>
+                            <p class="small text-muted" id="room_name_error" style="color: red;"></p>
+                            <input class="form-control" type="text" name="modal_room_name" id="modal_room_name">
+                        </p>
+                    </div>
+                    <div class="form-group">
+                        <p><label for="user-select">Select Users</label></p>
+                        <select class="form-control selectpicker" id="new-group-users" data-live-search="true"
+                                title="Select Users" multiple>
+                            {% for user in other_users %}
+                                <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="create-group-chat">Create GroupChat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% comment %} New Conversation {% endcomment %}
+    <div class="modal fade" id="conversation" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Start a New Conversation</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <p><label for="user-select">Select User</label></p>
+                        <select class="form-control selectpicker" id="new-conversation-user" data-live-search="true"
+                                title="Select User">
+                            {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="create-group-chat"
+                    onclick="startConversation();">Start Conversation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form method="post" action="{% url 'chatroom' %}" id="enter-chatroom">
+        {% csrf_token %}
+        <input type="hidden" name="room_name" id='room_name' value="">
+        <input type="hidden" name="user1" id='user1' value="">
+        <input type="hidden" name="user2" id='user2' value="">
+    </form>
+{% endblock %}
+{% block script %}
+    <script type="text/javascript">
+        function openCreateChatroom(user1, user2 = null) {
+            console.log('user1: ', user1)
+            $('#room_name, #user1, #user2').val('')
+            if (user2 === null) {
+                $('#room_name').val(user1);
+            } else {
+                $('#user1').val(user1);
+                $('#user2').val(user2);
+            }
+            $('#enter-chatroom').submit()
+        }
+
+        function startConversation() {
+            let user1 = '{{ request.user.id }}'
+            let user2 = $('#new-conversation-user').val()
+            openCreateChatroom(user1, user2);
+        }
+
+
+        function delay(callback, ms) {
+          var timer = 0;
+          return function() {
+            var context = this, args = arguments;
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+              callback.apply(context, args);
+            }, ms || 0);
+          };
+        }
+
+        let room_name_valid = false;
+        $('#modal_room_name').keyup(delay(function (e) {
+          console.log('Time elapsed!', this.value);
+          $.ajax({
+                     url: '{% url 'validate_room_name' %}',
+                     type: 'POST',
+                     data: {
+                         'csrfmiddlewaretoken': getCookie('csrftoken'),
+                         'room_name': this.value
+                     },
+                     success: function (data) {
+                         if (data.exist === true) {
+                             $.notify('Group Chat with this name exists', 'danger');
+                             $('#room_name_error').html('Group Chat with this name exists')
+                         } else if (data.exist === false) {
+                             $('#room_name_error').html('')
+                             room_name_valid = true
+                         }
+                     },
+                     error: function (e) {
+                         console.log('error occured')
+                     }
+
+                 });
+        }, 2000));
+
+        $('#search').keyup(delay(function (e) {
+          $.ajax({
+             url: '{% url 'search_index' %}',
+             type: 'POST',
+             data: {
+                 'csrfmiddlewaretoken': getCookie('csrftoken'),
+                 'keyword': this.value
+             },
+             success: function (data) {
+                 $('.friend-list').html(data.response)
+             },
+             error: function (e) {
+                 console.log('error occured')
+             }
+
+         });
+        }, 2000));
+
+        $('#search').on('input', function(e) {
+            if ($('#search').val().length === 0) {
+                reloadUsers();
+            }
+        })
+
+        function reloadUsers () {
+            $.ajax({
+             url: '{% url 'reload_index_user' %}',
+             type: 'GET',
+             success: function (data) {
+                 $('.friend-list').html(data.response)
+             },
+             error: function (e) {
+                 console.log('error occured')
+             }
+
+         });
+        }
+
+        $('#create-group-chat').click(function(e) {
+            let room_name = $('#modal_room_name').val()
+            let selectedUsers = $('#new-group-users').val()
+            if (room_name_valid === true && selectedUsers.length != 0) {
+                $.ajax({
+                    url: '{% url 'create_group_chat' %}',
+                    type: 'POST',
+                    data: {
+                        'csrfmiddlewaretoken': getCookie('csrftoken'),
+                        'room_name': room_name,
+                        'users': selectedUsers
+                    },
+                    success: function (e) {
+                        if (e.response === 'success') {
+                            $.notify('Group Chat Created successfully', 'success')
+                            $('.friend-list').prepend(e.out)
+                            $('#new-group-users').val('').prop("selected", false).trigger( "change" );
+                            $('#modal_room_name').val('')
+                        } else if (e.integrity_error) {
+                            $.notify(e.integrity_error, 'error')
+                        }
+                    },
+                    error: function(e) {
+                        console.log('error occured')
+                    }
+                })
+                $('#group-chat').modal('hide');
+                $('#group-chat').trigger('reset');
+            } else {
+                if (selectedUsers.length <= 1) {
+                    $.notify('Ensure to Select 2 or More Users')
+                }
+                if (room_name_valid === false) {
+                    $.notify('Ensure to provide a valid Room name', 'error')
+                }
+            }
+        })
+    </script>
+{% endblock %}
